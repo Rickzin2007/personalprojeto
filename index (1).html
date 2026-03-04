@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iago Carvalho — Personal Trainer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:#0a0a0a; --dark:#111111; --card:#181818; --border:#272727;
+      --gold:#c9a84c; --gold-light:#e8c56d; --white:#f0ede8; --muted:#777;
+      --red:#e05252; --green:#52c97a; --blue:#5296e0; --orange:#e07c52;
+      --yellow:#e0c452; --sidebar-w:240px;
+    }
+    html,body{height:100%;background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;}
+    .hidden{display:none!important;}
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:var(--black);}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+    #screen-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;}
+    .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-text{font-size:12px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
+    #screen-auth{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    #screen-auth::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,.14) 0%,transparent 68%);pointer-events:none;border-radius:50%;}
+    #screen-auth::after{content:'';position:absolute;bottom:-180px;right:-180px;width:520px;height:520px;background:radial-gradient(circle,rgba(201,168,76,.08) 0%,transparent 68%);pointer-events:none;border-radius:50%;}
+    .auth-card{background:var(--dark);border:1px solid var(--border);border-radius:6px;width:440px;max-width:95vw;padding:48px 40px;position:relative;z-index:1;animation:fadeUp .4s ease;max-height:98vh;overflow-y:auto;}
+    .auth-logo{text-align:center;margin-bottom:32px;}
+    .auth-logo-name{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:5px;}
+    .auth-logo-sub{font-size:11px;color:var(--gold);letter-spacing:6px;text-transform:uppercase;margin-top:-2px;}
+    .auth-logo-line{width:56px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto 0;}
+    .tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:28px;}
+    .tab-btn{flex:1;padding:11px;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:color .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+    .form-group{margin-bottom:16px;}
+    .form-label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+    .form-input{width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s;outline:none;}
+    .form-input:focus{border-color:var(--gold);}
+    .form-input::placeholder{color:#3a3a3a;}
+    textarea.form-input{resize:vertical;min-height:110px;}
+    select.form-input{cursor:pointer;}
+    .btn-primary{width:100%;padding:13px;background:var(--gold);border:none;border-radius:3px;color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;cursor:pointer;transition:background .2s;margin-top:8px;}
+    .btn-primary:hover{background:var(--gold-light);}
+    .msg{font-size:12px;margin-top:10px;padding:9px 12px;border-radius:3px;line-height:1.6;}
+    .msg-error{color:var(--red);background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.2);}
+    .msg-success{color:var(--green);background:rgba(82,201,122,.12);border:1px solid rgba(82,201,122,.2);}
+    .strength-wrap{margin-top:8px;}
+    .strength-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;}
+    .strength-fill{height:100%;width:0%;border-radius:2px;transition:width .35s,background .35s;}
+    .strength-label{font-size:11px;color:var(--muted);margin-top:4px;min-height:16px;}
+    .pass-hints{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;}
+    .pass-hint{font-size:10px;padding:3px 8px;border-radius:100px;background:var(--border);color:var(--muted);transition:all .2s;white-space:nowrap;}
+    .pass-hint.ok{background:rgba(82,201,122,.18);color:var(--green);border:1px solid rgba(82,201,122,.3);}
+    .pass-field{position:relative;}
+    .pass-field .form-input{padding-right:44px;}
+    .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px;line-height:1;transition:color .2s;}
+    .eye-btn:hover{color:var(--gold);}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    #screen-app{display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:300;transition:transform .25s ease;}
+    .sidebar-header{padding:26px 22px 20px;border-bottom:1px solid var(--border);}
+    .sidebar-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;}
+    .sidebar-role{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+    .sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:12px 22px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;border-left:3px solid transparent;user-select:none;}
+    .nav-item:hover{color:var(--white);background:rgba(255,255,255,.03);}
+    .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.06);}
+    .nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+    .sidebar-footer{padding:14px 22px;border-top:1px solid var(--border);}
+    .sidebar-username{font-size:12px;color:var(--muted);margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .btn-logout{width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+    .btn-logout:hover{border-color:var(--red);color:var(--red);}
+    .main{margin-left:var(--sidebar-w);flex:1;padding:40px 44px;min-height:100vh;}
+    .mobile-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;background:var(--dark);border-bottom:1px solid var(--border);align-items:center;padding:0 18px;z-index:400;gap:14px;}
+    .burger{background:none;border:none;color:var(--white);font-size:22px;cursor:pointer;padding:4px 8px;border-radius:3px;}
+    .mobile-bar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:250;}
+    .sidebar-overlay.visible{display:block;animation:fadeIn .2s ease;}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);}
+      .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.6);}
+      .main{margin-left:0;padding:72px 18px 30px;}
+      .mobile-bar{display:flex;}
+      .grid-2,.grid-3,.grid-4{grid-template-columns:1fr!important;}
+      .auth-card{padding:32px 22px;}
+      .page-header-row{flex-direction:column!important;}
+      .table-wrap{overflow-x:auto;}
+      .modal{padding:24px 20px;}
+      .modal-footer{flex-direction:column;}
+      .modal-footer .btn{width:100%;text-align:center;}
+    }
+    .page-header{margin-bottom:30px;}
+    .page-header-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;}
+    .page-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:4px;}
+    .page-sub{color:var(--muted);font-size:13px;margin-top:3px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:26px;}
+    .card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--gold);margin-bottom:18px;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:22px;}
+    .stat-number{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--gold);line-height:1;}
+    .stat-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:5px;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:11px 14px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;}
+    td{padding:13px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:rgba(255,255,255,.015);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;white-space:nowrap;}
+    .badge-green{background:rgba(82,201,122,.15);color:var(--green);}
+    .badge-gold{background:rgba(201,168,76,.15);color:var(--gold);}
+    .badge-red{background:rgba(224,82,82,.15);color:var(--red);}
+    .badge-blue{background:rgba(82,150,224,.15);color:var(--blue);}
+    .badge-gray{background:rgba(255,255,255,.07);color:var(--muted);}
+    .btn{padding:8px 16px;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;border:none;white-space:nowrap;}
+    .btn-sm{padding:5px 11px;font-size:11px;}
+    .btn-gold{background:var(--gold);color:var(--black);font-weight:600;}
+    .btn-gold:hover{background:var(--gold-light);}
+    .btn-danger{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);}
+    .btn-danger:hover{background:rgba(224,82,82,.22);}
+    .btn-outline{background:none;color:var(--muted);border:1px solid var(--border);}
+    .btn-outline:hover{color:var(--white);border-color:#555;}
+    .btn-success{background:rgba(82,201,122,.12);color:var(--green);border:1px solid rgba(82,201,122,.25);}
+    .btn-success:hover{background:rgba(82,201,122,.22);}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle-label{font-size:13px;}
+    .switch{position:relative;width:42px;height:22px;flex-shrink:0;}
+    .switch input{opacity:0;width:0;height:0;position:absolute;}
+    .slider{position:absolute;inset:0;background:var(--border);border-radius:100px;cursor:pointer;transition:.2s;}
+    .slider::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:var(--muted);border-radius:50%;transition:.2s;}
+    .switch input:checked+.slider{background:rgba(201,168,76,.3);}
+    .switch input:checked+.slider::after{transform:translateX(20px);background:var(--gold);}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
+    .modal{background:var(--dark);border:1px solid var(--border);border-radius:4px;width:580px;max-width:100%;max-height:90vh;overflow-y:auto;padding:34px;animation:fadeUp .25s ease;}
+    .modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--gold);margin-bottom:22px;}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap;}
+    .content-block{background:var(--black);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:18px;}
+    .content-block h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;}
+    .content-block pre{white-space:pre-wrap;font-family:'DM Sans',sans-serif;font-size:14px;color:#bbb;line-height:1.9;}
+    .locked-box{text-align:center;padding:60px 30px;background:var(--card);border:1px solid var(--border);border-radius:4px;}
+    .locked-icon{font-size:38px;margin-bottom:12px;}
+    .locked-text{color:var(--muted);font-size:13px;margin-top:8px;line-height:1.7;}
+    .empty-state{text-align:center;padding:44px;color:var(--muted);font-size:13px;}
+    .tag{display:inline-block;padding:2px 8px;background:var(--border);border-radius:2px;font-size:11px;color:var(--muted);}
+    .pills{display:flex;flex-wrap:wrap;gap:6px;}
+  </style>
+</head>
+<body>
+
+<div id="screen-loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Carregando...</div>
+</div>
+
+<div id="screen-auth" class="hidden">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-name">IAGO CARVALHO</div>
+      <div class="auth-logo-sub">Personal Trainer</div>
+      <div class="auth-logo-line"></div>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login-btn" onclick="switchTab('login')">Entrar</button>
+      <button class="tab-btn" id="tab-reg-btn" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+    <div id="form-login">
+      <div class="form-group"><label class="form-label">Usuário ou E-mail</label>
+        <input class="form-input" id="login-user" placeholder="Seu usuário ou e-mail" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="form-group"><label class="form-label">Senha</label>
+        <div class="pass-field">
+          <input class="form-input" id="login-pass" type="password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="eye-btn" id="eye-login" onclick="toggleEye('login-pass','eye-login')" type="button">👁</button>
+        </div>
+      </div>
+      <div id="login-msg"></div>
+      <button class="btn-primary" onclick="doLogin()">ENTRAR</button>
+    </div>
+    <div id="form-register" class="hidden">
+      <div class="form-group"><label class="form-label">Nome Completo *</label><input class="form-input" id="reg-name" placeholder="Seu nome completo"></div>
+      <div class="form-group"><label class="form-label">Usuário *</label><input class="form-input" id="reg-user" placeholder="Escolha um nome de usuário"></div>
+      <div class="form-group"><label class="form-label">E-mail *</label><input class="form-input" id="reg-email" type="email" placeholder="seuemail@exemplo.com"></div>
+      <div class="form-group">
+        <label class="form-label">Senha *</label>
+        <div class="pass-field">
+          <input class="form-input" id="reg-pass" type="password" placeholder="8+ chars, maiúscula, número, símbolo" oninput="onPassInput(this.value)">
+          <button class="eye-btn" id="eye-reg" onclick="toggleEye('reg-pass','eye-reg')" type="button">👁</button>
+        </div>
+        <div class="strength-wrap">
+          <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+          <div class="strength-label" id="strength-label"></div>
+        </div>
+        <div class="pass-hints">
+          <span class="pass-hint" id="hint-len">8+ caracteres</span>
+          <span class="pass-hint" id="hint-upper">Maiúscula (A-Z)</span>
+          <span class="pass-hint" id="hint-num">Número (0-9)</span>
+          <span class="pass-hint" id="hint-sym">Símbolo (!@#$...)</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar Senha *</label>
+        <div class="pass-field">
+          <input class="form-input" id="reg-pass2" type="password" placeholder="Repita a senha">
+          <button class="eye-btn" id="eye-reg2" onclick="toggleEye('reg-pass2','eye-reg2')" type="button">👁</button>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="reg-phone" placeholder="(00) 00000-0000"></div>
+      <div id="reg-msg"></div>
+      <button class="btn-primary" onclick="doRegister()">CADASTRAR</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-app" class="hidden">
+  <div class="mobile-bar">
+    <button class="burger" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-bar-title">IAGO CARVALHO</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-name">IAGO CARVALHO</div>
+      <div class="sidebar-role" id="sidebar-role"></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-username" id="sidebar-username"></div>
+      <button class="btn-logout" onclick="doLogout()">SAIR</button>
+    </div>
+  </aside>
+  <main class="main" id="main-content"></main>
+</div>
+<div id="modal-root"></div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   BANCO DE DADOS — Supabase
+   Dados compartilhados entre TODOS os dispositivos/navegadores
+══════════════════════════════════════════════════ */
+
+const SUPABASE_URL = 'https://krgzkwewgyzubhuqqzwm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZ3prd2V3Z3l6dWJodXFxendtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTY3NDUsImV4cCI6MjA4Nzk5Mjc0NX0.eZoohRrgCyWCLRApQanl3fQuHE75GWP1B4G8Kb-JNGc';
+
+async function sbFetch(path, method = 'GET', body = null, extraHeaders = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extraHeaders
+  };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  opts.signal = controller.signal;
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+    clearTimeout(timeout);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error('Supabase error: ' + err);
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : [];
+  } catch(e) {
+    clearTimeout(timeout);
+    if (e.name === 'AbortError') throw new Error('Tempo limite de conexão esgotado. Verifique sua internet.');
+    throw e;
+  }
+}
+
+const DB = {
+  /* USERS */
+  async users() {
+    return await sbFetch('users?select=*') || [];
+  },
+  async saveUser(id, upd) {
+    const existing = await sbFetch('users?id=eq.' + id + '&select=id');
+    if (existing && existing.length > 0) {
+      await sbFetch('users?id=eq.' + id, 'PATCH', upd);
+    } else {
+      await sbFetch('users', 'POST', { id, ...upd });
+    }
+  },
+  async removeUser(id) {
+    await sbFetch('users?id=eq.' + id, 'DELETE');
+  },
+
+  /* APTS */
+  async apts() {
+    return await sbFetch('apts?select=*') || [];
+  },
+  async saveApt(id, upd) {
+    const existing = await sbFetch('apts?id=eq.' + id + '&select=id');
+    if (existing && existing.length > 0) {
+      await sbFetch('apts?id=eq.' + id, 'PATCH', upd);
+    } else {
+      await sbFetch('apts', 'POST', { id, ...upd });
+    }
+  },
+  async removeApt(id) {
+    await sbFetch('apts?id=eq.' + id, 'DELETE');
+  },
+
+  /* LEADS */
+  async leads() {
+    return await sbFetch('leads?select=*') || [];
+  },
+  async saveLead(id, upd) {
+    const existing = await sbFetch('leads?id=eq.' + id + '&select=id');
+    if (existing && existing.length > 0) {
+      await sbFetch('leads?id=eq.' + id, 'PATCH', upd);
+    } else {
+      await sbFetch('leads', 'POST', { id, ...upd });
+    }
+  },
+  async removeLead(id) {
+    await sbFetch('leads?id=eq.' + id, 'DELETE');
+  },
+
+  /* GET GENÉRICO (por id em qualquer tabela) */
+  async get(col, id) {
+    if (col === 'users') {
+      const r = await sbFetch('users?id=eq.' + id + '&select=*');
+      return r && r.length > 0 ? r[0] : null;
+    }
+    if (col === 'leads') {
+      const r = await sbFetch('leads?id=eq.' + id + '&select=*');
+      return r && r.length > 0 ? r[0] : null;
+    }
+    return null;
+  },
+
+  /* EXERCISE LIBRARY - CATEGORIES */
+  async getExerciseCategories() {
+    try { return await sbFetch('exercise_categories?select=*&order=name.asc') || []; } catch(e) { return []; }
+  },
+  async saveExerciseCategory(id, data) {
+    try {
+      const existing = await sbFetch('exercise_categories?id=eq.'+id+'&select=id');
+      if(existing&&existing.length>0){ await sbFetch('exercise_categories?id=eq.'+id,'PATCH',data); }
+      else { await sbFetch('exercise_categories','POST',{id,...data}); }
+    } catch(e){ throw e; }
+  },
+  async removeExerciseCategory(id) {
+    try { await sbFetch('exercise_categories?id=eq.'+id,'DELETE'); } catch(e){} 
+  },
+
+  /* EXERCISE LIBRARY - EXERCISES */
+  async getExercises(categoryId) {
+    try {
+      const url = categoryId ? 'exercises?categoryId=eq.'+categoryId+'&select=*&order=name.asc' : 'exercises?select=*&order=name.asc';
+      return await sbFetch(url) || [];
+    } catch(e) { return []; }
+  },
+  async saveExercise(id, data) {
+    try {
+      const existing = await sbFetch('exercises?id=eq.'+id+'&select=id');
+      if(existing&&existing.length>0){ await sbFetch('exercises?id=eq.'+id,'PATCH',data); }
+      else { await sbFetch('exercises','POST',{id,...data}); }
+    } catch(e){ throw e; }
+  },
+  async removeExercise(id) {
+    try { await sbFetch('exercises?id=eq.'+id,'DELETE'); } catch(e){}
+  },
+
+  /* TRAINING DAYS */
+  async getTrainingDays(userId) {
+    try { return await sbFetch('training_days?userId=eq.'+userId+'&select=*&order=dayOrder.asc') || []; } catch(e) { return []; }
+  },
+  async saveTrainingDay(id, data) {
+    try {
+      const existing = await sbFetch('training_days?id=eq.'+id+'&select=id');
+      if(existing&&existing.length>0){ await sbFetch('training_days?id=eq.'+id,'PATCH',data); }
+      else { await sbFetch('training_days','POST',{id,...data}); }
+    } catch(e){ console.error('saveTrainingDay',e); throw e; }
+  },
+  async removeTrainingDay(id) {
+    try { await sbFetch('training_days?id=eq.'+id,'DELETE'); } catch(e){}
+  },
+
+  /* WORKOUT HISTORY */
+  async getWorkoutHistory(userId) {
+    try { return await sbFetch('workout_history?userId=eq.' + userId + '&select=*&order=createdAt.desc') || []; } catch(e) { return []; }
+  },
+  async saveWorkoutHistory(id, data) {
+    try {
+      const existing = await sbFetch('workout_history?id=eq.' + id + '&select=id');
+      if (existing && existing.length > 0) { await sbFetch('workout_history?id=eq.' + id, 'PATCH', data); }
+      else { await sbFetch('workout_history', 'POST', { id, ...data }); }
+    } catch(e) { console.error('saveWorkoutHistory error', e); }
+  },
+  async removeWorkoutHistory(id) {
+    try { await sbFetch('workout_history?id=eq.' + id, 'DELETE'); } catch(e) {}
+  },
+
+  /* GLOBAL EXERCISE IMAGES */
+  async getGlobalExerciseImages() {
+    try { return await sbFetch('global_exercise_images?select=*') || []; } catch(e) { return []; }
+  },
+  async saveGlobalExerciseImg(id, data) {
+    try {
+      const existing = await sbFetch('global_exercise_images?id=eq.' + id + '&select=id');
+      if (existing && existing.length > 0) { await sbFetch('global_exercise_images?id=eq.' + id, 'PATCH', data); }
+      else { await sbFetch('global_exercise_images', 'POST', { id, ...data }); }
+    } catch(e) { console.error('saveGlobalImg error', e); throw e; }
+  },
+  async removeGlobalExerciseImg(id) {
+    try { await sbFetch('global_exercise_images?id=eq.' + id, 'DELETE'); } catch(e) {}
+  },
+
+  /* TEMPLATES */
+  async getTemplates() {
+    try { return await sbFetch('templates?select=*&order=label.asc') || []; } catch(e) { return []; }
+  },
+  async saveTemplate(id, data) {
+    try {
+      const existing = await sbFetch('templates?id=eq.' + id + '&select=id');
+      if (existing && existing.length > 0) { await sbFetch('templates?id=eq.' + id, 'PATCH', data); }
+      else { await sbFetch('templates', 'POST', { id, ...data }); }
+    } catch(e) { console.error('saveTemplate error', e); throw e; }
+  },
+  async removeTemplate(id) {
+    try { await sbFetch('templates?id=eq.' + id, 'DELETE'); } catch(e) {}
+  },
+
+  /* EXERCISE IMAGES */
+  async getExerciseImages(userId) {
+    try { return await sbFetch('exercise_images?userId=eq.' + userId + '&select=*') || []; } catch(e) { return []; }
+  },
+  async saveExerciseImg(id, data) {
+    try {
+      const existing = await sbFetch('exercise_images?id=eq.' + id + '&select=id');
+      if (existing && existing.length > 0) {
+        await sbFetch('exercise_images?id=eq.' + id, 'PATCH', data);
+      } else {
+        await sbFetch('exercise_images', 'POST', { id, ...data });
+      }
+    } catch(e) { console.error('saveExerciseImg error', e); }
+  },
+  async removeExerciseImg(id) {
+    try { await sbFetch('exercise_images?id=eq.' + id, 'DELETE'); } catch(e) {}
+  },
+
+  /* ASSESSMENTS */
+  async getAssessments(userId) {
+    try { return await sbFetch('assessments?userId=eq.' + userId + '&select=*&order=date.asc') || []; } catch(e) { return []; }
+  },
+  async saveAssessment(id, data) {
+    try {
+      const existing = await sbFetch('assessments?id=eq.' + id + '&select=id');
+      if (existing && existing.length > 0) {
+        await sbFetch('assessments?id=eq.' + id, 'PATCH', data);
+      } else {
+        await sbFetch('assessments', 'POST', { id, ...data });
+      }
+    } catch(e) { console.error('saveAssessment error', e); }
+  },
+  async removeAssessment(id) {
+    try { await sbFetch('assessments?id=eq.' + id, 'DELETE'); } catch(e) {}
+  },
+
+  /* CONFIG DO ADMIN */
+  async getAdminConfig() {
+    const r = await sbFetch('config?id=eq.admin&select=*');
+    if (r && r.length > 0) return r[0];
+    return { username: 'ADMIM', password: '123456789', name: 'Iago Carvalho' };
+  },
+  async saveAdminConfig(data) {
+    const cur = await this.getAdminConfig();
+    const merged = { ...cur, ...data, id: 'admin' };
+    const existing = await sbFetch('config?id=eq.admin&select=id');
+    if (existing && existing.length > 0) {
+      await sbFetch('config?id=eq.admin', 'PATCH', data);
+    } else {
+      await sbFetch('config', 'POST', merged);
+    }
+  },
+
+  /* SESSÃO LOCAL (só para manter login no mesmo navegador) */
+  session()      { try { return JSON.parse(localStorage.getItem('ic_session')); } catch(e) { return null; } },
+  saveSession(s) { localStorage.setItem('ic_session', JSON.stringify(s)); },
+  clearSession() { localStorage.removeItem('ic_session'); },
+};
+
+let currentUser = null;
+let currentPage = 'dashboard';
+let ADMIN = { id:'admin', role:'admin', username:'ADMIM', password:'123456789', name:'Iago Carvalho' };
+
+async function boot() {
+  try {
+    const adminCfg = await DB.getAdminConfig();
+    ADMIN = { id:'admin', role:'admin', ...adminCfg };
+    document.getElementById('screen-loading').classList.add('hidden');
+    const saved = DB.session();
+    if (saved) {
+      currentUser = saved.role === 'admin' ? { ...ADMIN } : saved;
+      if (saved.role === 'admin') DB.saveSession(currentUser);
+      showApp();
+    } else {
+      document.getElementById('screen-auth').classList.remove('hidden');
+    }
+  } catch(e) {
+    document.getElementById('screen-loading').innerHTML =
+      `<div style="text-align:center;padding:40px">
+        <div style="font-size:36px;margin-bottom:16px">⚠️</div>
+        <div style="color:var(--red);font-size:14px;margin-bottom:8px">Falha ao conectar com o banco de dados</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:24px">${e.message||'Verifique sua internet e tente novamente.'}</div>
+        <button class="btn-primary" style="width:auto;padding:12px 32px" onclick="location.reload()">TENTAR NOVAMENTE</button>
+      </div>`;
+  }
+}
+
+/* Inicia quando a página carregar */
+window.addEventListener('DOMContentLoaded', () => {
+  boot();
+});
+
+/* ── UTILITÁRIOS ── */
+function uid()        { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escHtml(s)   { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function showMsg(id, text, type) { const el=document.getElementById(id); if(el) el.innerHTML=`<div class="msg msg-${type}">${text}</div>`; }
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()); }
+function analyzePassword(p) {
+  const o={hasLen:p.length>=8,hasUpper:/[A-Z]/.test(p),hasNum:/[0-9]/.test(p),hasSym:/[^A-Za-z0-9]/.test(p)};
+  o.score=[o.hasLen,o.hasUpper,o.hasNum,o.hasSym].filter(Boolean).length;
+  o.isStrong=o.hasLen&&o.hasUpper&&o.hasNum&&o.hasSym; return o;
+}
+function onPassInput(val) {
+  const a=analyzePassword(val);
+  document.getElementById('hint-len').classList.toggle('ok',a.hasLen);
+  document.getElementById('hint-upper').classList.toggle('ok',a.hasUpper);
+  document.getElementById('hint-num').classList.toggle('ok',a.hasNum);
+  document.getElementById('hint-sym').classList.toggle('ok',a.hasSym);
+  const fill=document.getElementById('strength-fill'),label=document.getElementById('strength-label');
+  const lv=[{w:'0%',bg:'transparent',txt:''},{w:'25%',bg:'var(--red)',txt:'🔴 Muito fraca'},{w:'50%',bg:'var(--orange)',txt:'🟠 Fraca'},{w:'75%',bg:'var(--yellow)',txt:'🟡 Média'},{w:'100%',bg:'var(--green)',txt:'✅ Forte'}][val?Math.min(a.score,4):0];
+  fill.style.width=lv.w; fill.style.background=lv.bg; label.textContent=lv.txt;
+}
+function toggleEye(iId,bId) {
+  const i=document.getElementById(iId),b=document.getElementById(bId);
+  if(i.type==='password'){i.type='text';b.textContent='🙈';}else{i.type='password';b.textContent='👁';}
+}
+
+/* ── AUTH ── */
+function switchTab(tab) {
+  const isL=tab==='login';
+  document.getElementById('tab-login-btn').classList.toggle('active',isL);
+  document.getElementById('tab-reg-btn').classList.toggle('active',!isL);
+  document.getElementById('form-login').classList.toggle('hidden',!isL);
+  document.getElementById('form-register').classList.toggle('hidden',isL);
+  document.getElementById('login-msg').innerHTML='';
+  document.getElementById('reg-msg').innerHTML='';
+}
+
+async function doLogin() {
+  const raw=document.getElementById('login-user').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!raw||!pass){showMsg('login-msg','⚠️ Preencha usuário e senha.','error');return;}
+  showMsg('login-msg','⏳ Verificando...','success');
+  try {
+    const adminCfg=await DB.getAdminConfig();
+    ADMIN={id:'admin',role:'admin',...adminCfg};
+    if(raw===ADMIN.username&&pass===ADMIN.password){currentUser={...ADMIN};DB.saveSession(currentUser);showApp();return;}
+    const users=await DB.users();
+    const found=users.find(u=>(u.username===raw||(u.email&&u.email.toLowerCase()===raw.toLowerCase()))&&u.password===pass);
+    if(found){currentUser=found;DB.saveSession(currentUser);showApp();}
+    else showMsg('login-msg','❌ Usuário ou senha incorretos.','error');
+  } catch(e) {
+    showMsg('login-msg','❌ Erro de conexão: '+(e.message||'Verifique sua internet e tente novamente.'),'error');
+  }
+}
+
+async function doRegister() {
+  const name=document.getElementById('reg-name').value.trim();
+  const user=document.getElementById('reg-user').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  const phone=document.getElementById('reg-phone').value.trim();
+  if(!name||!user||!email||!pass||!pass2){showMsg('reg-msg','⚠️ Preencha todos os campos.','error');return;}
+  if(!isValidEmail(email)){showMsg('reg-msg','⚠️ E-mail inválido.','error');return;}
+  if(!analyzePassword(pass).isStrong){showMsg('reg-msg','⚠️ Senha fraca! Use 8+ chars, maiúscula, número e símbolo.','error');return;}
+  if(pass!==pass2){showMsg('reg-msg','⚠️ Senhas não coincidem.','error');return;}
+  showMsg('reg-msg','⏳ Cadastrando...','success');
+  const users=await DB.users();
+  if(users.find(u=>u.username.toLowerCase()===user.toLowerCase())){showMsg('reg-msg','⚠️ Usuário já em uso.','error');return;}
+  if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showMsg('reg-msg','⚠️ E-mail já cadastrado.','error');return;}
+  const id=uid();
+  await DB.saveUser(id,{id,username:user,password:pass,name,email,phone,role:'student',hasWorkout:false,hasDiet:false,workout:'',diet:'',createdAt:new Date().toLocaleDateString('pt-BR'),active:true});
+  showMsg('reg-msg','✅ Cadastro realizado! Aguarde a liberação do personal.','success');
+  ['reg-name','reg-user','reg-email','reg-pass','reg-pass2','reg-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  onPassInput('');
+  setTimeout(()=>switchTab('login'),2000);
+}
+
+function doLogout() {
+  DB.clearSession();currentUser=null;currentPage='dashboard';
+  document.getElementById('screen-auth').classList.remove('hidden');
+  document.getElementById('screen-app').classList.add('hidden');
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+}
+
+/* ── NAVEGAÇÃO ── */
+function showApp() {
+  document.getElementById('screen-auth').classList.add('hidden');
+  document.getElementById('screen-app').classList.remove('hidden');
+  buildSidebar();navigate('dashboard');
+}
+function buildSidebar() {
+  const isA=currentUser.role==='admin';
+  document.getElementById('sidebar-role').textContent=isA?'💪 Administrador':'👤 Aluno';
+  document.getElementById('sidebar-username').textContent=currentUser.name||currentUser.username;
+  const items=isA
+    ?[['dashboard','📊','Dashboard'],['students','👥','Alunos'],['plans','📋','Planejamento'],['exercises','🏋️','Lista de Exercícios'],['history','📜','Histórico'],['appointments','📅','Consultas'],['assessments','📏','Avaliações'],['leads','📣','Captação'],['settings','⚙️','Minha Conta']]
+    :[['dashboard','🏠','Início'],['myplan','📅','Meu Planejamento'],['myexercises','🏋️','Exercícios'],['appointments','📅','Consultas'],['myassessments','📏','Avaliações']];
+  document.getElementById('sidebar-nav').innerHTML=items.map(([id,icon,label])=>
+    `<div class="nav-item" id="nav-${id}" onclick="navigate('${id}')"><span class="nav-icon">${icon}</span><span>${label}</span></div>`
+  ).join('');
+}
+function navigate(page) {
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const n=document.getElementById('nav-'+page);if(n)n.classList.add('active');
+  closeSidebar();
+  document.getElementById('main-content').innerHTML='<div style="padding:60px;text-align:center"><div class="spinner" style="margin:auto"></div></div>';
+  const isA=currentUser.role==='admin';
+  if(isA){
+    if(page==='dashboard')    renderAdminDashboard();
+    if(page==='students')     renderAdminStudents();
+    if(page==='plans')        renderAdminPlans();
+    if(page==='exercises')    renderAdminExercises();
+    if(page==='history')      renderAdminHistory();
+    if(page==='appointments') renderAdminApts();
+    if(page==='leads')        renderAdminLeads();
+    if(page==='assessments')  renderAdminAssessments();
+    if(page==='settings')     renderAdminSettings();
+  }else{
+    if(page==='dashboard')    renderStudentDashboard();
+    if(page==='myplan'){_cachedPlanDays=null;renderStudentMyPlan();}
+    if(page==='myexercises')  renderStudentExercises();
+    if(page==='workout')      renderStudentWorkout();
+    if(page==='diet')         renderStudentDiet();
+    if(page==='appointments') renderStudentApts();
+    if(page==='myassessments') renderStudentAssessments();
+  }
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('visible');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('visible');}
+
+/* ══ PÁGINAS DO ALUNO ══ */
+async function renderStudentDashboard() {
+  const u=await DB.get('users',currentUser.id)||currentUser;
+  const [apts,days,assessments]=await Promise.all([DB.apts(),DB.getTrainingDays(currentUser.id),DB.getAssessments(currentUser.id)]);
+  const myApts=apts.filter(a=>a.userId===currentUser.id||a.userName===currentUser.name);
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">OLÁ, ${escHtml((u.name||'').split(' ')[0].toUpperCase())}!</div><div class="page-sub">Seu painel de acompanhamento</div></div>
+    <div class="card" style="margin-bottom:22px">
+      <div class="card-title">ACESSO RÁPIDO</div>
+      <div class="toggle-row" style="cursor:pointer" onclick="navigate('myplan')"><span class="toggle-label">📅 Meu Planejamento</span><span class="badge badge-gold">Ver →</span></div>
+      <div class="toggle-row" style="cursor:pointer" onclick="navigate('myexercises')"><span class="toggle-label">🏋️ Exercícios</span><span class="badge badge-gold">Ver →</span></div>
+      <div class="toggle-row" style="cursor:pointer" onclick="navigate('appointments')"><span class="toggle-label">📅 Minhas Consultas</span><span class="badge badge-blue">${myApts.length}</span></div>
+      <div class="toggle-row" style="cursor:pointer" onclick="navigate('myassessments')"><span class="toggle-label">📏 Avaliações</span><span class="badge badge-blue">${assessments.length}</span></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:24px">
+      <div class="stat-card"><div class="stat-number">${days.length}</div><div class="stat-label">Treinos Cadastrados</div></div>
+      <div class="stat-card"><div class="stat-number">${myApts.length}</div><div class="stat-label">Consultas</div></div>
+      <div class="stat-card"><div class="stat-number">${assessments.length}</div><div class="stat-label">Avaliações</div></div>
+    </div>`;
+}
+
+async function renderStudentMyPlan() {
+  const u=await DB.get('users',currentUser.id)||currentUser;
+  const days=await DB.getTrainingDays(currentUser.id);
+  const DAYS=['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo'];
+  const SHORT=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const today=new Date().getDay(); // 0=dom,1=seg...
+  const todayIdx=[1,2,3,4,5,6,0].indexOf(today); // map to our 0=seg index
+
+  // group training days by dayName
+  const dayMap={};
+  days.forEach(d=>{
+    if(!dayMap[d.dayName]) dayMap[d.dayName]=[];
+    dayMap[d.dayName].push(d);
+  });
+  // also check for Personalizado
+  const custom=days.filter(d=>!DAYS.includes(d.dayName));
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">MEU PLANEJAMENTO</div><div class="page-sub">Selecione um dia da semana</div></div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px">
+      ${DAYS.map((day,i)=>{
+        const hasTreino=dayMap[day]&&dayMap[day].length>0;
+        const isToday=i===todayIdx;
+        return`<div onclick="selectPlanDay('${day}')" id="planday-${i}"
+          style="cursor:pointer;background:var(--card);border:2px solid ${isToday?'var(--gold)':hasTreino?'var(--border)':'var(--border)'};border-radius:6px;padding:12px 6px;text-align:center;transition:all .2s;${isToday?'background:rgba(201,168,76,.1)':''}"
+          onmouseover="this.style.borderColor='var(--gold)'" onmouseout="if(document.getElementById('planday-active')?.dataset.day!=='${day}')this.style.borderColor='${isToday?'var(--gold)':hasTreino?'var(--border)':'var(--border)'}'">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:${isToday?'var(--gold)':'var(--white)'}">${SHORT[i]}</div>
+          <div style="margin-top:6px">${hasTreino?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold)"></span>':'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--border)"></span>'}</div>
+          ${isToday?'<div style="font-size:9px;color:var(--gold);margin-top:3px;letter-spacing:1px">HOJE</div>':''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    ${custom.length>0?`
+    <div style="margin-bottom:16px">
+      ${custom.map(d=>`<button onclick="showDayTraining([${JSON.stringify(d)}],'${escHtml(d.dayLabel||d.dayName)}')" class="btn btn-outline btn-sm" style="margin-right:6px">${escHtml(d.dayLabel||d.dayName)}</button>`).join('')}
+    </div>`:''}
+
+    <div id="plan-day-content">
+      <div class="card"><div style="color:var(--muted);font-size:13px;text-align:center;padding:30px">👆 Clique em um dia para ver o treino</div></div>
+    </div>
+
+    <div class="card-title" style="margin:28px 0 14px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px">🥗 DIETA</div>
+    ${u.diet
+      ? `<div class="card"><pre style="font-size:13px;line-height:1.9;color:#ccc;white-space:pre-wrap">${escHtml(u.diet)}</pre></div>`
+      : '<div class="card"><div class="empty-state">⏳ Dieta ainda não cadastrada pelo personal.</div></div>'}`;
+
+  // auto-select today
+  if(todayIdx>=0) selectPlanDay(DAYS[todayIdx]);
+}
+
+let _cachedPlanDays=null;
+async function selectPlanDay(dayName) {
+  const DAYS=['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo'];
+  const SHORT=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const idx=DAYS.indexOf(dayName);
+
+  // update active style
+  DAYS.forEach((d,i)=>{
+    const el=document.getElementById('planday-'+i);
+    if(!el)return;
+    const isToday=i===[1,2,3,4,5,6,0].indexOf(new Date().getDay());
+    el.style.borderColor=d===dayName?'var(--gold)':(isToday?'var(--gold)':'var(--border)');
+    el.style.background=d===dayName?'rgba(201,168,76,.15)':(isToday?'rgba(201,168,76,.05)':'var(--card)');
+  });
+
+  if(!_cachedPlanDays) _cachedPlanDays=await DB.getTrainingDays(currentUser.id);
+  const trainings=_cachedPlanDays.filter(d=>d.dayName===dayName);
+  showDayTraining(trainings, dayName);
+}
+
+function showDayTraining(trainings, dayName) {
+  const el=document.getElementById('plan-day-content');
+  if(!el)return;
+  if(trainings.length===0){
+    el.innerHTML=`<div class="card"><div style="color:var(--muted);font-size:13px;text-align:center;padding:30px">😴 Nenhum treino para <strong>${escHtml(dayName)}</strong>.<br><span style="font-size:11px">Descanse ou aguarde o personal adicionar um treino.</span></div></div>`;
+    return;
+  }
+  el.innerHTML=trainings.map(d=>`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="background:var(--gold);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:12px;padding:2px 10px;border-radius:2px">${escHtml(d.dayName)}</div>
+            ${d.category?`<span class="tag">${escHtml(d.category)}</span>`:''}
+          </div>
+          <div style="font-size:17px;font-weight:600;color:var(--white)">${escHtml(d.dayLabel||d.dayName)}</div>
+        </div>
+      </div>
+      <pre style="font-size:13px;line-height:2;color:#ccc;white-space:pre-wrap">${escHtml(d.content)}</pre>
+    </div>`).join('');
+}
+
+async function renderStudentAssessments() {
+  const assessments=await DB.getAssessments(currentUser.id);
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">AVALIAÇÕES</div><div class="page-sub">Suas avaliações físicas</div></div>
+    ${assessments.length===0
+      ? '<div class="card"><div class="empty-state">Nenhuma avaliação registrada ainda.</div></div>'
+      : assessments.slice().reverse().map(a=>`
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:var(--gold);margin-bottom:12px">📏 ${a.date}</div>
+          <pre style="font-size:13px;line-height:1.9;color:#ccc;white-space:pre-wrap">${escHtml(a.content)}</pre>
+        </div>`).join('')}`;
+}
+
+async function renderStudentWorkout() { navigate('myplan'); }
+async function renderStudentDiet() { navigate('myplan'); }
+
+async function renderStudentApts() {
+  const allApts=await DB.apts();
+  const apts=allApts.filter(a=>a.userId===currentUser.id||a.userName===currentUser.name);
+  const sb={pending:'badge-gold',confirmed:'badge-green',cancelled:'badge-red'};
+  const sl={pending:'⏳ Pendente',confirmed:'✅ Confirmada',cancelled:'❌ Cancelada'};
+  const typeLabels={treino:'💪 Treino',dieta:'🥗 Dieta',avaliacao:'📏 Avaliação Física'};
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">CONSULTAS</div><div class="page-sub">Seus agendamentos com o personal</div></div>
+    ${apts.length===0?'<div class="card"><div class="empty-state">Nenhuma consulta agendada ainda.</div></div>':apts.map(a=>`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px">📅 ${a.date} — ${a.time}</div>
+          <div class="pills" style="margin-top:5px">${(a.types||[]).map(t=>`<span class="tag">${typeLabels[t]||t}</span>`).join('')}</div>
+        </div>
+        <span class="badge ${sb[a.status]}">${sl[a.status]}</span>
+      </div>
+      ${a.notes?`<div style="color:var(--muted);font-size:12px;margin-bottom:10px">📝 ${escHtml(a.notes)}</div>`:''}
+      ${(a.types||[]).map(t=>(a.contents||{})[t]?`<div class="content-block" style="margin-bottom:8px"><h3>${typeLabels[t]}</h3><pre style="font-size:12px">${escHtml((a.contents||{})[t])}</pre></div>`:''
+      ).join('')}
+    </div>`).join('')}`;
+}
+function lockedPage(title,feat) {
+  return `<div class="page-header"><div class="page-title">${title}</div></div><div class="locked-box"><div class="locked-icon">🔒</div><div class="card-title">ACESSO BLOQUEADO</div><div class="locked-text">Seu(a) ${feat} ainda não foi liberado(a).<br>Aguarde o contato do Iago Carvalho.</div></div>`;
+}
+
+/* ══ PÁGINAS DO ADMIN ══ */
+async function renderAdminDashboard() {
+  const [users,apts,leads]=await Promise.all([DB.users(),DB.apts(),DB.leads()]);
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">DASHBOARD</div><div class="page-sub">Visão geral — Iago Carvalho PT</div></div>
+    <div class="grid-3" style="margin-bottom:24px">
+      <div class="stat-card"><div class="stat-number">${users.length}</div><div class="stat-label">Alunos</div></div>
+      <div class="stat-card"><div class="stat-number">${apts.filter(a=>a.status==='pending').length}</div><div class="stat-label">Consultas Pendentes</div></div>
+      <div class="stat-card"><div class="stat-number">${leads.length}</div><div class="stat-label">Leads</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">ÚLTIMOS ALUNOS</div>
+        ${users.length===0?'<div class="empty-state">Nenhum aluno.</div>':users.slice(-5).reverse().map(u=>`
+          <div class="toggle-row"><span>${escHtml(u.name)}</span><div class="pills">${u.hasWorkout?'<span class="tag">Treino</span>':''}${u.hasDiet?'<span class="tag">Dieta</span>':''}</div></div>`).join('')}
+      </div>
+      <div class="card"><div class="card-title">CONSULTAS RECENTES</div>
+        ${apts.filter(a=>a.status!=='cancelled').slice(-5).reverse().map(a=>`
+          <div class="toggle-row">
+            <div><div style="font-size:13px">${escHtml(a.userName)}</div><div style="font-size:11px;color:var(--muted)">${a.date} • ${a.time}</div></div>
+            <span class="badge ${a.status==='confirmed'?'badge-green':'badge-gold'}">${a.status==='confirmed'?'Confirmada':'Pendente'}</span>
+          </div>`).join('')||'<div class="empty-state">Nenhuma consulta.</div>'}
+      </div>
+    </div>`;
+}
+
+async function renderAdminStudents() {
+  const users=await DB.users();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">GERENCIAR ALUNOS</div><div class="page-sub">Controle de acessos e dados</div></div>
+    <div class="card"><div class="table-wrap" id="students-wrap">${buildStudentsTable(users)}</div></div>`;
+}
+function buildStudentsTable(users) {
+  if(users.length===0)return'<div class="empty-state">Nenhum aluno cadastrado.</div>';
+  return`<table><thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Cadastro</th><th>Treino</th><th>Dieta</th><th>Ações</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="font-weight:500">${escHtml(u.name)}</td>
+      <td style="color:var(--muted)">@${escHtml(u.username)}</td>
+      <td style="color:var(--muted);font-size:12px">${escHtml(u.email||'—')}</td>
+      <td style="color:var(--muted);font-size:12px">${u.createdAt||'—'}</td>
+      <td><label class="switch"><input type="checkbox" ${u.hasWorkout?'checked':''} onchange="toggleAccess('${u.id}','hasWorkout',this.checked)"><span class="slider"></span></label></td>
+      <td><label class="switch"><input type="checkbox" ${u.hasDiet?'checked':''} onchange="toggleAccess('${u.id}','hasDiet',this.checked)"><span class="slider"></span></label></td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="openEditStudentModal('${u.id}')">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="openDeleteStudentModal('${u.id}')">🗑️ Remover</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+async function toggleAccess(userId,field,val) { await DB.saveUser(userId,{[field]:val}); }
+async function openEditStudentModal(userId) {
+  const u=await DB.get('users',userId);if(!u)return;
+  openModal(`<div class="modal-title">EDITAR ALUNO</div>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="es-name" value="${escHtml(u.name)}"></div>
+    <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="es-email" value="${escHtml(u.email||'')}"></div>
+    <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="es-phone" value="${escHtml(u.phone||'')}"></div>
+    <div class="form-group"><label class="form-label">Nova Senha (em branco = manter)</label><input class="form-input" type="password" id="es-pass" placeholder="Nova senha"></div>
+    <div class="toggle-row"><span class="toggle-label">Acesso ao Treino</span><label class="switch"><input type="checkbox" id="es-workout" ${u.hasWorkout?'checked':''}><span class="slider"></span></label></div>
+    <div class="toggle-row" style="margin-bottom:8px"><span class="toggle-label">Acesso à Dieta</span><label class="switch"><input type="checkbox" id="es-diet" ${u.hasDiet?'checked':''}><span class="slider"></span></label></div>
+    <div id="es-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveEditStudent('${u.id}')">Salvar</button></div>`);
+}
+async function saveEditStudent(userId) {
+  const newEmail=document.getElementById('es-email').value.trim();
+  if(newEmail&&!isValidEmail(newEmail)){showMsg('es-msg','⚠️ E-mail inválido.','error');return;}
+  showMsg('es-msg','⏳ Salvando...','success');
+  const upd={name:document.getElementById('es-name').value.trim(),email:newEmail,phone:document.getElementById('es-phone').value.trim(),hasWorkout:document.getElementById('es-workout').checked,hasDiet:document.getElementById('es-diet').checked};
+  const np=document.getElementById('es-pass').value;if(np)upd.password=np;
+  await DB.saveUser(userId,upd);closeModal();
+  const wrap=document.getElementById('students-wrap');
+  if(wrap)wrap.innerHTML=buildStudentsTable(await DB.users());
+}
+async function openDeleteStudentModal(userId) {
+  const u=await DB.get('users',userId);if(!u)return;
+  openModal(`<div class="modal-title">REMOVER ALUNO</div>
+    <p style="color:var(--muted);font-size:14px;line-height:1.8">Tem certeza que deseja remover <strong style="color:var(--white)">${escHtml(u.name)}</strong>?</p>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="deleteStudent('${u.id}')">Remover</button></div>`);
+}
+async function deleteStudent(userId) {
+  await DB.removeUser(userId);closeModal();
+  const wrap=document.getElementById('students-wrap');
+  if(wrap)wrap.innerHTML=buildStudentsTable(await DB.users());
+}
+
+/* ══ PLANEJAMENTO ══ */
+async function renderAdminPlans() {
+  const users=await DB.users();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header">
+      <div class="page-title">PLANEJAMENTO DOS ALUNOS</div>
+      <div class="page-sub">Treinos, dietas e exercícios</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <button class="btn btn-outline btn-sm" onclick="renderAdminTemplates()">⚙️ Treinos Salvos</button>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="max-height:640px;overflow-y:auto"><div class="card-title">SELECIONAR ALUNO</div>
+        ${users.length===0?'<div class="empty-state">Nenhum aluno.</div>':users.map(u=>`
+          <div onclick="selectPlanUser('${u.id}')" id="plan-row-${u.id}" style="cursor:pointer;padding:12px 8px;border-radius:3px;transition:background .15s" class="toggle-row">
+            <div><div style="font-size:13px;font-weight:500">${escHtml(u.name)}</div><div style="font-size:11px;color:var(--muted)">@${escHtml(u.username)}</div></div>
+            <div class="pills">${u.hasWorkout?'<span class="tag">Treino</span>':''}${u.hasDiet?'<span class="tag">Dieta</span>':''}</div>
+          </div>`).join('')}
+      </div>
+      <div id="plan-editor"><div class="locked-box"><div class="locked-icon">👈</div><div style="color:var(--muted);font-size:14px">Selecione um aluno ao lado</div></div></div>
+    </div>`;
+}
+
+async function selectPlanUser(userId) {
+  document.querySelectorAll('[id^="plan-row-"]').forEach(el=>el.style.background='');
+  const row=document.getElementById('plan-row-'+userId);if(row)row.style.background='rgba(201,168,76,.08)';
+  const u=await DB.get('users',userId);if(!u)return;
+  const [trainingDays, allTpls] = await Promise.all([DB.getTrainingDays(userId), DB.getTemplates()]);
+  const dTpls=allTpls.filter(t=>t.type==='diet');
+  const dOpts=dTpls.map(t=>`<option value="${escHtml(t.id)}">${escHtml(t.label)}</option>`).join('');
+
+  document.getElementById('plan-editor').innerHTML=`
+    <div class="card">
+      <div class="card-title">PLANEJAMENTO: ${escHtml(u.name)}</div>
+
+      <div style="border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase">💪 Treinos por Dia</div>
+          <button class="btn btn-gold btn-sm" onclick="openAddTrainingDayModal('${u.id}')">+ Adicionar Dia</button>
+        </div>
+        ${trainingDays.length===0?'<div style="color:var(--muted);font-size:12px;padding:10px 0">Nenhum treino adicionado ainda.</div>':
+        trainingDays.map(d=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">${escHtml(d.dayLabel||d.dayName)}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">${escHtml(d.category||'')} ${d.content?'• '+escHtml(d.content.substring(0,40))+'...':''}</div>
+            </div>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-sm btn-outline" onclick="openEditTrainingDayModal('${u.id}','${d.id}')">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTrainingDay('${u.id}','${d.id}')">🗑️</button>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🥗 Dieta</label>
+        ${dTpls.length>0?`<select class="form-input" style="margin-bottom:8px" onchange="applyDietTemplate(this)"><option value="">— Selecionar modelo de dieta —</option>${dOpts}</select>`:'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sem modelos. <span style="color:var(--gold);cursor:pointer" onclick="renderAdminTemplates()">Criar →</span></div>'}
+        <div id="plan-diet-label" style="font-size:11px;color:var(--gold);margin-bottom:4px;min-height:16px"></div>
+        <textarea class="form-input" id="plan-diet" style="min-height:120px">${escHtml(u.diet||'')}</textarea>
+      </div>
+
+      <div id="plan-msg"></div>
+      <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="savePlanDiet('${u.id}')">SALVAR DIETA</button>
+    </div>`;
+}
+
+function openAddTrainingDayModal(userId) {
+  const DAYS=['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo','Personalizado'];
+  _planTemplates=[];
+  DB.getTemplates().then(tpls=>{
+    const wTpls=tpls.filter(t=>t.type==='workout');
+    const wOpts=wTpls.map(t=>`<option value="${escHtml(t.id)}">${escHtml(t.label)}</option>`).join('');
+    openModal(`<div class="modal-title">ADICIONAR TREINO</div>
+      <div class="form-group"><label class="form-label">Dia *</label>
+        <select class="form-input" id="td-day">${DAYS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Nome do Treino (ex: Peito/Tríceps)</label>
+        <input class="form-input" id="td-label" placeholder="Ex: Peito e Tríceps">
+      </div>
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-input" id="td-category">
+          <option>Musculação</option><option>Cardio</option><option>Funcional</option><option>Descanso</option><option>Outro</option>
+        </select>
+      </div>
+      ${wTpls.length>0?`<div class="form-group"><label class="form-label">Treinos Salvos</label>
+        <select class="form-input" id="td-tpl" onchange="applyTdTemplate(this)"><option value="">— Selecionar treino salvo —</option>${wOpts}</select>
+      </div>`:''}
+      <div class="form-group"><label class="form-label">Descrição do Treino *</label>
+        <textarea class="form-input" id="td-content" style="min-height:140px" placeholder="1. Supino Reto — 4x10&#10;2. Supino Inclinado — 3x12&#10;..."></textarea>
+      </div>
+      <div id="td-msg"></div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveTrainingDay('${userId}')">Salvar</button></div>`);
+    _planTemplates=wTpls;
+  });
+}
+function applyGlobalImgToDay(sel) {
+  if(!sel.value)return;
+  const opt=sel.options[sel.selectedIndex];
+  const url=opt.dataset.url||'', link=opt.dataset.link||'', caption=opt.dataset.caption||'';
+  document.getElementById('td-img-url').value=url;
+  document.getElementById('td-img-link').value=link;
+  document.getElementById('td-img-caption').value=caption;
+  const preview=document.getElementById('td-img-preview');
+  const previewImg=document.getElementById('td-img-preview-img');
+  const previewLabel=document.getElementById('td-img-preview-label');
+  if(preview&&previewImg&&url){
+    previewImg.src=url;
+    if(previewLabel) previewLabel.textContent=caption||'';
+    preview.style.display='block';
+  }
+}
+function previewTdImg(url) {
+  const preview=document.getElementById('td-img-preview');
+  const previewImg=document.getElementById('td-img-preview-img');
+  if(preview&&previewImg&&url){previewImg.src=url;preview.style.display='block';}
+  else if(preview&&!url){preview.style.display='none';}
+}
+function applyTdTemplate(sel) {
+  if(!sel.value)return;
+  const tpl=_planTemplates.find(t=>t.id===sel.value);if(!tpl)return;
+  const ta=document.getElementById('td-content');
+  if(ta){if(ta.value&&!confirm('Substituir pelo modelo "'+tpl.label+'"?')){sel.value='';return;}ta.value=tpl.content;}
+  sel.value='';
+}
+async function saveTrainingDay(userId, editId) {
+  const dayName=document.getElementById('td-day').value;
+  const label=document.getElementById('td-label').value.trim();
+  const category=document.getElementById('td-category').value;
+  const content=document.getElementById('td-content').value.trim();
+  if(!content){showMsg('td-msg','⚠️ Descreva o treino.','error');return;}
+  showMsg('td-msg','⏳ Salvando...','success');
+  const DAYS=['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo','Personalizado'];
+  const dayOrder=DAYS.indexOf(dayName);
+  const id=editId||uid();
+  try {
+    await DB.saveTrainingDay(id,{id,userId,dayName,dayLabel:label||dayName,category,content,dayOrder:dayOrder>=0?dayOrder:99});
+    closeModal(); selectPlanUser(userId);
+  } catch(e){ showMsg('td-msg','❌ Erro ao salvar.','error'); }
+}
+async function openEditTrainingDayModal(userId, dayId) {
+  const [days]=await Promise.all([DB.getTrainingDays(userId)]);
+  const d=days.find(x=>x.id===dayId);if(!d)return;
+  const DAYS=['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo','Personalizado'];
+  openModal(`<div class="modal-title">EDITAR TREINO</div>
+    <div class="form-group"><label class="form-label">Dia *</label>
+      <select class="form-input" id="td-day">${DAYS.map(day=>`<option value="${day}" ${day===d.dayName?'selected':''}>${day}</option>`).join('')}</select>
+    </div>
+    <div class="form-group"><label class="form-label">Nome do Treino</label>
+      <input class="form-input" id="td-label" value="${escHtml(d.dayLabel||'')}">
+    </div>
+    <div class="form-group"><label class="form-label">Categoria</label>
+      <select class="form-input" id="td-category">
+        ${['Musculação','Cardio','Funcional','Descanso','Outro'].map(c=>`<option ${c===d.category?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição do Treino *</label>
+      <textarea class="form-input" id="td-content" style="min-height:140px">${escHtml(d.content)}</textarea>
+    </div>
+    <div id="td-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveTrainingDay('${userId}','${dayId}')">Salvar</button></div>`);
+}
+async function deleteTrainingDay(userId, dayId) {
+  if(!confirm('Remover este treino?'))return;
+  await DB.removeTrainingDay(dayId);
+  selectPlanUser(userId);
+}
+async function savePlanDiet(userId) {
+  const btn=event?.target;if(btn)btn.disabled=true;
+  showMsg('plan-msg','⏳ Salvando...','success');
+  try {
+    const diet=document.getElementById('plan-diet').value;
+    await DB.saveUser(userId,{diet});
+    const hid=uid();
+    await DB.saveWorkoutHistory(hid,{id:hid,userId,diet,createdAt:new Date().toLocaleDateString('pt-BR')});
+    showMsg('plan-msg','✅ Dieta salva!','success');
+  } catch(e){ showMsg('plan-msg','❌ Erro ao salvar.','error'); }
+  if(btn)btn.disabled=false;
+  setTimeout(()=>{const el=document.getElementById('plan-msg');if(el)el.innerHTML='';},2500);
+}
+
+let _planTemplates=[];
+async function applyDietTemplate(sel) {
+  if(!sel.value)return;
+  if(!_planTemplates.length) _planTemplates=await DB.getTemplates();
+  const tpl=_planTemplates.find(t=>t.id===sel.value);if(!tpl)return;
+  const ta=document.getElementById('plan-diet');
+  if(ta&&ta.value&&!confirm('Substituir pelo modelo "'+tpl.label+'"?')){sel.value='';return;}
+  if(ta) ta.value=tpl.content;
+  const lbl=document.getElementById('plan-diet-label');
+  if(lbl) lbl.textContent='Modelo: '+tpl.label;
+  sel.value='';
+}
+async function addImgFromGlobal(sel, userId) {
+  if(!sel.value)return;
+  const globalImgs=await DB.getGlobalExerciseImages();
+  const img=globalImgs.find(i=>i.id===sel.value);
+  if(!img){sel.value='';return;}
+  const id=uid();
+  await DB.saveExerciseImg(id,{id,userId,url:img.url,link:img.link,caption:img.caption});
+  sel.value='';
+  selectPlanUser(userId);
+}
+function openAddExerciseImgModal(userId) {
+  openModal(`<div class="modal-title">ADICIONAR FOTO DE EXERCÍCIO</div>
+    <div class="form-group"><label class="form-label">URL da Imagem *</label><input class="form-input" id="ei-url" placeholder="https://i.imgur.com/..."></div>
+    <div class="form-group"><label class="form-label">Link do Vídeo ao Clicar *</label><input class="form-input" id="ei-link" placeholder="https://youtube.com/watch?v=..."></div>
+    <div class="form-group"><label class="form-label">Legenda (nome do exercício)</label><input class="form-input" id="ei-caption" placeholder="Ex: Agachamento Livre"></div>
+    <div id="ei-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveExerciseImg('${userId}')">Salvar</button></div>`);
+}
+async function saveExerciseImg(userId) {
+  const url=document.getElementById('ei-url').value.trim(),link=document.getElementById('ei-link').value.trim(),caption=document.getElementById('ei-caption').value.trim();
+  if(!url||!link){showMsg('ei-msg','⚠️ Informe URL da imagem e link do vídeo.','error');return;}
+  showMsg('ei-msg','⏳ Salvando...','success');
+  const id=uid();
+  try { await DB.saveExerciseImg(id,{id,userId,url,link,caption}); closeModal(); selectPlanUser(userId); }
+  catch(e){ showMsg('ei-msg','❌ Erro ao salvar.','error'); }
+}
+async function deleteExerciseImg(userId,imgId) {
+  await DB.removeExerciseImg(imgId);
+  selectPlanUser(userId);
+}
+
+/* ══ GERENCIAR MODELOS ══ */
+async function renderAdminTemplates() {
+  const [tpls, globalImgs] = await Promise.all([DB.getTemplates(), DB.getGlobalExerciseImages()]);
+  const wTpls=tpls.filter(t=>t.type==='workout');
+  const dTpls=tpls.filter(t=>t.type==='diet');
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">TREINOS SALVOS</div><div class="page-sub">Reutilize em qualquer aluno</div></div>
+      <button class="btn btn-outline btn-sm" onclick="renderAdminPlans()">← Voltar</button>
+    </div>
+    <div class="grid-3" style="gap:18px">
+      <div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0;font-size:13px">💪 TREINO</div>
+          <button class="btn btn-gold btn-sm" onclick="openTemplateModal('workout')">+ Novo</button>
+        </div>
+        ${wTpls.length===0?'<div class="empty-state" style="padding:20px">Nenhum modelo.</div>':wTpls.map(t=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${escHtml(t.label)}</span>
+            <div style="display:flex;gap:5px;flex-shrink:0">
+              <button class="btn btn-sm btn-outline" onclick="openTemplateModal('workout','${t.id}')">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')">🗑️</button>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0;font-size:13px">🥗 DIETA</div>
+          <button class="btn btn-gold btn-sm" onclick="openTemplateModal('diet')">+ Novo</button>
+        </div>
+        ${dTpls.length===0?'<div class="empty-state" style="padding:20px">Nenhum modelo.</div>':dTpls.map(t=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${escHtml(t.label)}</span>
+            <div style="display:flex;gap:5px;flex-shrink:0">
+              <button class="btn btn-sm btn-outline" onclick="openTemplateModal('diet','${t.id}')">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')">🗑️</button>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0;font-size:13px">🖼️ FOTOS GLOBAIS</div>
+          <button class="btn btn-gold btn-sm" onclick="openGlobalImgModal()">+ Nova</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Aparecem para todos os alunos</div>
+        ${globalImgs.length===0?'<div class="empty-state" style="padding:20px">Nenhuma foto.</div>':globalImgs.map(img=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+            <img src="${escHtml(img.url)}" style="width:40px;height:40px;object-fit:cover;border-radius:3px;flex-shrink:0;cursor:pointer" onclick="window.open('${escHtml(img.link)}','_blank')">
+            <span style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${escHtml(img.caption||'Sem legenda')}</span>
+            <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="deleteGlobalImg('${img.id}')">🗑️</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+async function openTemplateModal(type, tplId) {
+  const tpl=tplId?(await DB.getTemplates()).find(t=>t.id===tplId):null;
+  const typeLabel=type==='workout'?'💪 Treino':'🥗 Dieta';
+  openModal(`<div class="modal-title">${tpl?'EDITAR':'NOVO'} MODELO — ${typeLabel}</div>
+    <div class="form-group"><label class="form-label">Nome do Modelo *</label><input class="form-input" id="tpl-label" value="${escHtml(tpl?.label||'')}" placeholder="Ex: Treino A — Peito/Tríceps"></div>
+    <div class="form-group"><label class="form-label">Conteúdo *</label><textarea class="form-input" id="tpl-content" style="min-height:200px">${escHtml(tpl?.content||'')}</textarea></div>
+    <div id="tpl-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveTemplate('${type}','${tplId||''}')">Salvar</button></div>`);
+}
+async function saveTemplate(type, tplId) {
+  const label=document.getElementById('tpl-label').value.trim();
+  const content=document.getElementById('tpl-content').value.trim();
+  if(!label||!content){showMsg('tpl-msg','⚠️ Preencha nome e conteúdo.','error');return;}
+  showMsg('tpl-msg','⏳ Salvando...','success');
+  const id=tplId||uid();
+  try { await DB.saveTemplate(id,{id,type,label,content}); closeModal(); renderAdminTemplates(); }
+  catch(e){ showMsg('tpl-msg','❌ Erro ao salvar.','error'); }
+}
+async function deleteTemplate(id) {
+  if(!confirm('Remover este modelo?'))return;
+  await DB.removeTemplate(id);
+  renderAdminTemplates();
+}
+function openGlobalImgModal() {
+  openModal(`<div class="modal-title">NOVA FOTO GLOBAL</div>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:16px">Esta foto aparecerá para todos os alunos na aba Meu Treino.</div>
+    <div class="form-group"><label class="form-label">URL da Imagem *</label><input class="form-input" id="gi-url" placeholder="https://i.imgur.com/..."></div>
+    <div class="form-group"><label class="form-label">Link do Vídeo *</label><input class="form-input" id="gi-link" placeholder="https://youtube.com/watch?v=..."></div>
+    <div class="form-group"><label class="form-label">Legenda</label><input class="form-input" id="gi-caption" placeholder="Ex: Agachamento Livre"></div>
+    <div id="gi-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveGlobalImg()">Salvar</button></div>`);
+}
+async function saveGlobalImg() {
+  const url=document.getElementById('gi-url').value.trim(),link=document.getElementById('gi-link').value.trim(),caption=document.getElementById('gi-caption').value.trim();
+  if(!url||!link){showMsg('gi-msg','⚠️ Informe URL e link.','error');return;}
+  showMsg('gi-msg','⏳ Salvando...','success');
+  const id=uid();
+  try { await DB.saveGlobalExerciseImg(id,{id,url,link,caption}); closeModal(); renderAdminTemplates(); }
+  catch(e){ showMsg('gi-msg','❌ Erro ao salvar.','error'); }
+}
+async function deleteGlobalImg(id) {
+  await DB.removeGlobalExerciseImg(id);
+  renderAdminTemplates();
+}
+
+/* ══ HISTÓRICO DE TREINOS ══ */
+let _selectedHistoryUser=null;
+async function renderAdminHistory() {
+  const users=await DB.users();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">HISTÓRICO DE TREINOS</div><div class="page-sub">Treinos e dietas passados por aluno</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="max-height:680px;overflow-y:auto">
+        <div class="card-title">SELECIONAR ALUNO</div>
+        ${users.length===0?'<div class="empty-state">Nenhum aluno.</div>':users.map(u=>`
+          <div onclick="selectHistoryUser('${u.id}')" id="hist-row-${u.id}" style="cursor:pointer;padding:12px 8px;border-radius:3px;transition:background .15s" class="toggle-row">
+            <div><div style="font-size:13px;font-weight:500">${escHtml(u.name)}</div><div style="font-size:11px;color:var(--muted)">@${escHtml(u.username)}</div></div>
+          </div>`).join('')}
+      </div>
+      <div id="history-viewer"><div class="locked-box"><div class="locked-icon">👈</div><div style="color:var(--muted);font-size:14px">Selecione um aluno ao lado</div></div></div>
+    </div>`;
+}
+async function selectHistoryUser(userId) {
+  _selectedHistoryUser=userId;
+  document.querySelectorAll('[id^="hist-row-"]').forEach(el=>el.style.background='');
+  const row=document.getElementById('hist-row-'+userId);if(row)row.style.background='rgba(201,168,76,.08)';
+  const u=await DB.get('users',userId);if(!u)return;
+  const list=await DB.getWorkoutHistory(userId);
+  document.getElementById('history-viewer').innerHTML=`
+    <div class="card" style="max-height:680px;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="card-title" style="margin:0">📜 HISTÓRICO: ${escHtml(u.name)}</div>
+        <span style="font-size:11px;color:var(--muted)">${list.length} registro(s)</span>
+      </div>
+      ${list.length===0?'<div class="empty-state">Nenhum histórico ainda.<br><span style="font-size:11px">Os planos são salvos automaticamente ao clicar em "Salvar Plano".</span></div>':
+      list.map((h,i)=>`
+        <div class="content-block" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--gold)">📅 ${h.createdAt||'—'}</div>
+              ${h.workoutLabel?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${escHtml(h.workoutLabel)}</div>`:''}
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              ${i===0?'<span class="badge badge-green" style="font-size:10px">Atual</span>':''}
+              <button class="btn btn-sm btn-danger" onclick="deleteHistoryEntry('${h.id}','${userId}')">🗑️</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            ${h.workout?`<div>
+              <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">💪 Treino</div>
+              <pre style="font-size:11px;color:#bbb;line-height:1.6;max-height:100px;overflow:hidden">${escHtml(h.workout)}</pre>
+            </div>`:''}
+            ${h.diet?`<div>
+              <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">🥗 Dieta</div>
+              <pre style="font-size:11px;color:#bbb;line-height:1.6;max-height:100px;overflow:hidden">${escHtml(h.diet)}</pre>
+            </div>`:''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+async function deleteHistoryEntry(id, userId) {
+  if(!confirm('Remover este registro do histórico?'))return;
+  await DB.removeWorkoutHistory(id);
+  selectHistoryUser(userId);
+}
+
+async function renderAdminApts() {
+  const apts=await DB.apts();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">CONSULTAS</div><div class="page-sub">Todos os agendamentos</div></div>
+      <button class="btn btn-gold" onclick="openAdminAptModal()">+ Nova Consulta</button>
+    </div>
+    <div class="card"><div class="table-wrap" id="apts-wrap">${buildAptsTable(apts)}</div></div>`;
+}
+function buildAptsTable(apts) {
+  const sb={pending:'badge-gold',confirmed:'badge-green',cancelled:'badge-red'};
+  const sl={pending:'Pendente',confirmed:'Confirmada',cancelled:'Cancelada'};
+  const typeLabels={treino:'💪 Treino',dieta:'🥗 Dieta',avaliacao:'📏 Avaliação'};
+  if(apts.length===0)return'<div class="empty-state">Nenhuma consulta.</div>';
+  return`<table><thead><tr><th>Aluno</th><th>Data</th><th>Hora</th><th>Tipo</th><th>Obs.</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>${apts.map(a=>`<tr>
+      <td style="font-weight:500">${escHtml(a.userName)}</td><td>${a.date}</td><td>${a.time}</td>
+      <td><div class="pills">${(a.types||[]).map(t=>`<span class="tag">${typeLabels[t]||t}</span>`).join('')||'—'}</div></td>
+      <td style="color:var(--muted);font-size:12px">${escHtml(a.notes)||'—'}</td>
+      <td><span class="badge ${sb[a.status]}">${sl[a.status]}</span></td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        ${a.status==='pending'?`<button class="btn btn-sm btn-success" onclick="updateAptStatus('${a.id}','confirmed')">✓ Confirmar</button>`:''}
+        ${a.status!=='cancelled'?`<button class="btn btn-sm btn-danger" onclick="updateAptStatus('${a.id}','cancelled')">✕ Cancelar</button>`:''}
+        <button class="btn btn-sm btn-outline" onclick="deleteApt('${a.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+async function updateAptStatus(id,status) {
+  await DB.saveApt(id,{status});
+  const wrap=document.getElementById('apts-wrap');if(wrap)wrap.innerHTML=buildAptsTable(await DB.apts());
+}
+async function deleteApt(id) {
+  await DB.removeApt(id);
+  const wrap=document.getElementById('apts-wrap');if(wrap)wrap.innerHTML=buildAptsTable(await DB.apts());
+}
+async function openAdminAptModal() {
+  const users=await DB.users();
+  openModal(`<div class="modal-title">NOVA CONSULTA</div>
+    <div class="form-group"><label class="form-label">Aluno *</label>
+      <select class="form-input" id="aa-userId">
+        <option value="">Selecione o aluno...</option>
+        ${users.map(u=>`<option value="${u.id}" data-name="${escHtml(u.name)}">${escHtml(u.name)} (@${escHtml(u.username)})</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Data *</label><input type="date" class="form-input" id="aa-date"></div>
+    <div class="form-group"><label class="form-label">Horário *</label><input type="time" class="form-input" id="aa-time"></div>
+    <div class="form-group">
+      <label class="form-label">Tipo da Consulta * (pode selecionar mais de um)</label>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="checkbox" id="type-treino" onchange="toggleAptSection('treino',this.checked)" style="accent-color:var(--gold);width:16px;height:16px"> 💪 Treino</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="checkbox" id="type-dieta" onchange="toggleAptSection('dieta',this.checked)" style="accent-color:var(--gold);width:16px;height:16px"> 🥗 Dieta</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="checkbox" id="type-avaliacao" onchange="toggleAptSection('avaliacao',this.checked)" style="accent-color:var(--gold);width:16px;height:16px"> 📏 Avaliação Física</label>
+      </div>
+    </div>
+    <div id="apt-section-treino" class="hidden" style="margin-top:4px">
+      <div class="form-group"><label class="form-label">💪 Conteúdo do Treino</label><textarea class="form-input" id="aa-treino" style="min-height:120px" placeholder="Descreva o treino desta consulta..."></textarea></div>
+    </div>
+    <div id="apt-section-dieta" class="hidden" style="margin-top:4px">
+      <div class="form-group"><label class="form-label">🥗 Conteúdo da Dieta</label><textarea class="form-input" id="aa-dieta" style="min-height:120px" placeholder="Descreva a dieta desta consulta..."></textarea></div>
+    </div>
+    <div id="apt-section-avaliacao" class="hidden" style="margin-top:4px">
+      <div class="form-group"><label class="form-label">📏 Dados da Avaliação</label><textarea class="form-input" id="aa-avaliacao" style="min-height:120px" placeholder="Peso, medidas, % gordura..."></textarea></div>
+    </div>
+    <div class="form-group" style="margin-top:8px"><label class="form-label">Observações Gerais</label><textarea class="form-input" id="aa-notes" style="min-height:70px"></textarea></div>
+    <div id="aa-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="submitAdminApt()">Salvar</button></div>`);
+}
+function toggleAptSection(type, show) {
+  const el=document.getElementById('apt-section-'+type);
+  if(el){ el.classList.toggle('hidden',!show); }
+}
+async function submitAdminApt() {
+  const sel=document.getElementById('aa-userId');
+  const userId=sel.value;
+  const userName=sel.options[sel.selectedIndex]?.dataset?.name||'';
+  const date=document.getElementById('aa-date').value,time=document.getElementById('aa-time').value,notes=document.getElementById('aa-notes').value;
+  const types=['treino','dieta','avaliacao'].filter(t=>document.getElementById('type-'+t)?.checked);
+  if(!userId||!date||!time){showMsg('aa-msg','⚠️ Preencha aluno, data e horário.','error');return;}
+  if(types.length===0){showMsg('aa-msg','⚠️ Selecione ao menos um tipo de consulta.','error');return;}
+  showMsg('aa-msg','⏳ Salvando...','success');
+  const contents={};
+  if(types.includes('treino')) contents.treino=document.getElementById('aa-treino').value;
+  if(types.includes('dieta')) contents.dieta=document.getElementById('aa-dieta').value;
+  if(types.includes('avaliacao')) contents.avaliacao=document.getElementById('aa-avaliacao').value;
+  const id=uid();
+  try {
+    await DB.saveApt(id,{id,userId,userName,date,time,types,contents,notes,status:'confirmed',createdAt:new Date().toLocaleDateString('pt-BR')});
+    closeModal();renderAdminApts();
+  } catch(e){ showMsg('aa-msg','❌ Erro ao salvar. Tente novamente.','error'); }
+}
+
+/* ══ LISTA DE EXERCÍCIOS (ADMIN) ══ */
+async function renderAdminExercises() {
+  const cats=await DB.getExerciseCategories();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">LISTA DE EXERCÍCIOS</div><div class="page-sub">Categorias e exercícios com fotos/vídeos</div></div>
+      <button class="btn btn-gold" onclick="openAddCategoryModal()">+ Nova Categoria</button>
+    </div>
+    ${cats.length===0?`<div class="card"><div class="empty-state">Nenhuma categoria criada ainda.<br><span style="font-size:12px">Crie uma categoria como "Peito", "Costas", "Bíceps"...</span></div></div>`:''}
+    <div id="exercise-cats-list">
+      ${cats.map(cat=>`
+        <div class="card" style="margin-bottom:16px" id="cat-block-${cat.id}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold)">${escHtml(cat.name)}</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-gold btn-sm" onclick="openAddExerciseModal('${cat.id}','${escHtml(cat.name)}')">+ Exercício</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteCategoryConfirm('${cat.id}')">🗑️ Categoria</button>
+            </div>
+          </div>
+          <div id="exercises-of-${cat.id}"><div class="spinner" style="width:20px;height:20px;margin:10px auto"></div></div>
+        </div>`).join('')}
+    </div>`;
+  // load exercises for each category
+  cats.forEach(cat=>loadExercisesForCategory(cat.id));
+}
+async function loadExercisesForCategory(catId) {
+  const exercises=await DB.getExercises(catId);
+  const el=document.getElementById('exercises-of-'+catId);
+  if(!el)return;
+  if(exercises.length===0){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0">Nenhum exercício nesta categoria ainda.</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+    ${exercises.map(ex=>`
+      <div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;background:var(--black);position:relative">
+        ${ex.imgUrl?`<img src="${escHtml(ex.imgUrl)}" style="width:100%;height:100px;object-fit:cover;display:block;cursor:pointer" onclick="window.open('${escHtml(ex.videoLink||'#')}','_blank')">`:'<div style="width:100%;height:100px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:28px">🏋️</div>'}
+        <div style="padding:8px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:2px">${escHtml(ex.name)}</div>
+          ${ex.videoLink?`<div style="font-size:10px;color:var(--gold);cursor:pointer" onclick="window.open('${escHtml(ex.videoLink)}','_blank')">▶ Ver vídeo</div>`:''}
+        </div>
+        <div style="position:absolute;top:4px;right:4px;display:flex;gap:3px">
+          <button onclick="openEditExerciseModal('${ex.id}','${catId}')" style="background:rgba(0,0,0,.75);border:none;color:var(--white);cursor:pointer;border-radius:2px;padding:2px 6px;font-size:11px">✏️</button>
+          <button onclick="deleteExercise('${ex.id}','${catId}')" style="background:rgba(0,0,0,.75);border:none;color:var(--red);cursor:pointer;border-radius:2px;padding:2px 6px;font-size:11px">✕</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function openAddCategoryModal() {
+  openModal(`<div class="modal-title">NOVA CATEGORIA</div>
+    <div class="form-group"><label class="form-label">Nome da Categoria *</label>
+      <input class="form-input" id="cat-name" placeholder="Ex: Peito, Costas, Bíceps...">
+    </div>
+    <div id="cat-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveCategory()">Salvar</button></div>`);
+}
+async function saveCategory(editId) {
+  const name=document.getElementById('cat-name').value.trim();
+  if(!name){showMsg('cat-msg','⚠️ Digite um nome.','error');return;}
+  showMsg('cat-msg','⏳ Salvando...','success');
+  const id=editId||uid();
+  try { await DB.saveExerciseCategory(id,{id,name}); closeModal(); renderAdminExercises(); }
+  catch(e){ showMsg('cat-msg','❌ Erro ao salvar.','error'); }
+}
+async function deleteCategoryConfirm(catId) {
+  if(!confirm('Remover esta categoria e todos os seus exercícios?'))return;
+  const exercises=await DB.getExercises(catId);
+  await Promise.all(exercises.map(ex=>DB.removeExercise(ex.id)));
+  await DB.removeExerciseCategory(catId);
+  renderAdminExercises();
+}
+function openAddExerciseModal(catId, catName) {
+  openModal(`<div class="modal-title">NOVO EXERCÍCIO — ${escHtml(catName)}</div>
+    <div class="form-group"><label class="form-label">Nome do Exercício *</label>
+      <input class="form-input" id="ex-name" placeholder="Ex: Supino Reto, Rosca Direta...">
+    </div>
+    <div class="form-group"><label class="form-label">URL da Imagem (thumbnail)</label>
+      <input class="form-input" id="ex-img" placeholder="https://i.imgur.com/..." oninput="previewExImg(this.value)">
+      <div id="ex-img-preview" style="margin-top:8px;display:none"><img id="ex-img-preview-img" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px;border:1px solid var(--border)"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Link do Vídeo *</label>
+      <input class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=...">
+    </div>
+    <div id="ex-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveExercise('${catId}')">Salvar</button></div>`);
+}
+async function openEditExerciseModal(exId, catId) {
+  const exercises=await DB.getExercises(catId);
+  const ex=exercises.find(e=>e.id===exId);if(!ex)return;
+  const cats=await DB.getExerciseCategories();
+  const cat=cats.find(c=>c.id===catId);
+  openModal(`<div class="modal-title">EDITAR EXERCÍCIO</div>
+    <div class="form-group"><label class="form-label">Nome do Exercício *</label>
+      <input class="form-input" id="ex-name" value="${escHtml(ex.name)}">
+    </div>
+    <div class="form-group"><label class="form-label">URL da Imagem</label>
+      <input class="form-input" id="ex-img" value="${escHtml(ex.imgUrl||'')}" oninput="previewExImg(this.value)">
+      <div id="ex-img-preview" style="margin-top:8px;${ex.imgUrl?'':'display:none'}"><img id="ex-img-preview-img" src="${escHtml(ex.imgUrl||'')}" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px;border:1px solid var(--border)"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Link do Vídeo *</label>
+      <input class="form-input" id="ex-video" value="${escHtml(ex.videoLink||'')}">
+    </div>
+    <div id="ex-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveExercise('${catId}','${exId}')">Salvar</button></div>`);
+}
+function previewExImg(url) {
+  const p=document.getElementById('ex-img-preview'),img=document.getElementById('ex-img-preview-img');
+  if(p&&img){if(url){img.src=url;p.style.display='block';}else{p.style.display='none';}}
+}
+async function saveExercise(catId, editId) {
+  const name=document.getElementById('ex-name').value.trim();
+  const imgUrl=document.getElementById('ex-img').value.trim();
+  const videoLink=document.getElementById('ex-video').value.trim();
+  if(!name){showMsg('ex-msg','⚠️ Digite o nome do exercício.','error');return;}
+  showMsg('ex-msg','⏳ Salvando...','success');
+  const id=editId||uid();
+  try { await DB.saveExercise(id,{id,categoryId:catId,name,imgUrl,videoLink}); closeModal(); renderAdminExercises(); }
+  catch(e){ showMsg('ex-msg','❌ Erro ao salvar.','error'); }
+}
+async function deleteExercise(exId, catId) {
+  if(!confirm('Remover este exercício?'))return;
+  await DB.removeExercise(exId);
+  loadExercisesForCategory(catId);
+}
+
+/* ══ EXERCÍCIOS (ALUNO) ══ */
+let _selectedExCat=null;
+async function renderStudentExercises() {
+  const cats=await DB.getExerciseCategories();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">EXERCÍCIOS</div><div class="page-sub">Selecione um grupo muscular</div></div>
+    ${cats.length===0?'<div class="card"><div class="empty-state">Nenhum exercício cadastrado ainda.</div></div>':''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:24px">
+      ${cats.map(cat=>`
+        <div onclick="selectExerciseCategory('${cat.id}','${escHtml(cat.name)}')" id="excat-${cat.id}"
+          style="cursor:pointer;background:var(--card);border:2px solid var(--border);border-radius:6px;padding:20px 12px;text-align:center;transition:all .2s"
+          onmouseover="this.style.borderColor='var(--gold)'" onmouseout="if(_selectedExCat!='${cat.id}')this.style.borderColor='var(--border)'">
+          <div style="font-size:28px;margin-bottom:8px">🏋️</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px">${escHtml(cat.name)}</div>
+        </div>`).join('')}
+    </div>
+    <div id="exercises-display"></div>`;
+}
+async function selectExerciseCategory(catId, catName) {
+  _selectedExCat=catId;
+  document.querySelectorAll('[id^="excat-"]').forEach(el=>{el.style.borderColor='var(--border)';el.style.background='var(--card)';});
+  const el=document.getElementById('excat-'+catId);
+  if(el){el.style.borderColor='var(--gold)';el.style.background='rgba(201,168,76,.08)';}
+  const display=document.getElementById('exercises-display');
+  if(display) display.innerHTML='<div class="spinner" style="width:24px;height:24px;margin:20px auto"></div>';
+  const exercises=await DB.getExercises(catId);
+  if(!display)return;
+  if(exercises.length===0){display.innerHTML=`<div class="card"><div class="empty-state">Nenhum exercício em "${catName}" ainda.</div></div>`;return;}
+  display.innerHTML=`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);margin-bottom:14px">${escHtml(catName)}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px">
+      ${exercises.map(ex=>`
+        <a href="${escHtml(ex.videoLink||'#')}" target="_blank" rel="noopener"
+          style="display:block;border:1px solid var(--border);border-radius:6px;overflow:hidden;text-decoration:none;transition:all .2s;background:var(--card)"
+          onmouseover="this.style.borderColor='var(--gold)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
+          ${ex.imgUrl?`<img src="${escHtml(ex.imgUrl)}" style="width:100%;height:120px;object-fit:cover;display:block">`:'<div style="width:100%;height:120px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:36px">🏋️</div>'}
+          <div style="padding:10px">
+            <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px">${escHtml(ex.name)}</div>
+            ${ex.videoLink?'<div style="font-size:11px;color:var(--gold)">▶ Ver vídeo ↗</div>':''}
+          </div>
+        </a>`).join('')}
+    </div>`;
+}
+
+/* ══ AVALIAÇÕES FÍSICAS ══ */
+async function renderAdminAssessments() {
+  const users=await DB.users();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">AVALIAÇÕES FÍSICAS</div><div class="page-sub">Histórico de avaliações por aluno</div></div>
+      <button class="btn btn-gold" onclick="openAddAssessmentModal()">+ Nova Avaliação</button>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="max-height:680px;overflow-y:auto"><div class="card-title">SELECIONAR ALUNO</div>
+        ${users.length===0?'<div class="empty-state">Nenhum aluno.</div>':users.map(u=>`
+          <div onclick="selectAssessmentUser('${u.id}')" id="assess-row-${u.id}" style="cursor:pointer;padding:12px 8px;border-radius:3px;transition:background .15s" class="toggle-row">
+            <div><div style="font-size:13px;font-weight:500">${escHtml(u.name)}</div><div style="font-size:11px;color:var(--muted)">@${escHtml(u.username)}</div></div>
+          </div>`).join('')}
+      </div>
+      <div id="assessment-viewer"><div class="locked-box"><div class="locked-icon">👈</div><div style="color:var(--muted);font-size:14px">Selecione um aluno ao lado</div></div></div>
+    </div>`;
+  window._assessAddUserId=null;
+}
+let _selectedAssessUser=null;
+async function selectAssessmentUser(userId) {
+  _selectedAssessUser=userId;
+  document.querySelectorAll('[id^="assess-row-"]').forEach(el=>el.style.background='');
+  const row=document.getElementById('assess-row-'+userId);if(row)row.style.background='rgba(201,168,76,.08)';
+  const u=await DB.get('users',userId);if(!u)return;
+  const list=await DB.getAssessments(userId);
+  document.getElementById('assessment-viewer').innerHTML=`
+    <div class="card">
+      <div class="card-title">📏 AVALIAÇÕES: ${escHtml(u.name)}</div>
+      <button class="btn btn-gold" style="margin-bottom:16px" onclick="openAddAssessmentModal('${u.id}')">+ Nova Avaliação para este aluno</button>
+      ${list.length===0?'<div class="empty-state">Nenhuma avaliação registrada.</div>':list.slice().reverse().map(a=>`
+        <div class="content-block" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3 style="font-size:14px;margin:0">📅 ${a.date}</h3>
+            <button class="btn btn-sm btn-danger" onclick="deleteAssessment('${a.id}','${u.id}')">🗑️</button>
+          </div>
+          <pre style="font-size:13px;line-height:1.8">${escHtml(a.content)}</pre>
+        </div>`).join('')}
+    </div>`;
+}
+async function openAddAssessmentModal(userId) {
+  const users=await DB.users();
+  const preSelected=userId||'';
+  openModal(`<div class="modal-title">NOVA AVALIAÇÃO FÍSICA</div>
+    <div class="form-group"><label class="form-label">Aluno *</label>
+      <select class="form-input" id="na-userId">
+        <option value="">Selecione o aluno...</option>
+        ${users.map(u=>`<option value="${u.id}" ${u.id===preSelected?'selected':''}>${escHtml(u.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Data *</label><input type="date" class="form-input" id="na-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="form-label">Dados da Avaliação *</label>
+      <textarea class="form-input" id="na-content" style="min-height:200px" placeholder="Peso: 80kg\nAltura: 1,75m\n% Gordura: 18%\nMassa Muscular: ...\n\nMedidas:\nCintura: ...\nAbdômen: ...\nBraço: ...\n..."></textarea>
+    </div>
+    <div id="na-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveAssessment()">Salvar</button></div>`);
+}
+async function saveAssessment() {
+  const userId=document.getElementById('na-userId').value;
+  const date=document.getElementById('na-date').value;
+  const content=document.getElementById('na-content').value.trim();
+  if(!userId||!date||!content){showMsg('na-msg','⚠️ Preencha todos os campos.','error');return;}
+  showMsg('na-msg','⏳ Salvando...','success');
+  const id=uid();
+  await DB.saveAssessment(id,{id,userId,date,content});
+  closeModal();
+  if(_selectedAssessUser===userId) selectAssessmentUser(userId);
+  else renderAdminAssessments();
+}
+async function deleteAssessment(id,userId) {
+  await DB.removeAssessment(id);
+  selectAssessmentUser(userId);
+}
+
+const LEAD_STATUS={new:{label:'Novo',badge:'badge-blue'},contact:{label:'Em Contato',badge:'badge-gold'},converted:{label:'Convertido',badge:'badge-green'},lost:{label:'Perdido',badge:'badge-red'}};
+
+async function renderAdminLeads() {
+  const leads=await DB.leads();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header page-header-row">
+      <div><div class="page-title">CAPTAÇÃO</div><div class="page-sub">Pipeline de leads</div></div>
+      <button class="btn btn-gold" onclick="openLeadModal()">+ Novo Lead</button>
+    </div>
+    <div class="grid-4" style="margin-bottom:22px">
+      ${Object.entries(LEAD_STATUS).map(([k,v])=>`<div class="stat-card"><div class="stat-number">${leads.filter(l=>l.status===k).length}</div><div class="stat-label">${v.label}</div></div>`).join('')}
+    </div>
+    <div class="card"><div class="table-wrap" id="leads-wrap">${buildLeadsTable(leads)}</div></div>`;
+}
+function buildLeadsTable(leads) {
+  if(leads.length===0)return'<div class="empty-state">Nenhum lead.</div>';
+  return`<table><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Origem</th><th>Status</th><th>Anotações</th><th>Ações</th></tr></thead>
+    <tbody>${leads.map(l=>`<tr>
+      <td style="font-weight:500">${escHtml(l.name)}</td>
+      <td style="font-size:12px;color:var(--muted)">${escHtml(l.phone||'—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${escHtml(l.email||'—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${escHtml(l.source||'—')}</td>
+      <td><span class="badge ${LEAD_STATUS[l.status]?.badge||'badge-gray'}">${LEAD_STATUS[l.status]?.label||l.status}</span></td>
+      <td style="font-size:12px;color:var(--muted);max-width:140px">${escHtml(l.notes||'—')}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-outline" onclick="openLeadModal('${l.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteLead('${l.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+async function openLeadModal(leadId) {
+  const l=leadId?await DB.get('leads',leadId):null;
+  openModal(`<div class="modal-title">${l?'EDITAR LEAD':'NOVO LEAD'}</div>
+    <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="l-name" value="${escHtml(l?.name||'')}"></div>
+    <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="l-phone" value="${escHtml(l?.phone||'')}"></div>
+    <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="l-email" value="${escHtml(l?.email||'')}"></div>
+    <div class="form-group"><label class="form-label">Origem</label><input class="form-input" id="l-source" value="${escHtml(l?.source||'')}" placeholder="Instagram, indicação..."></div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select class="form-input" id="l-status">${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${(l?.status||'new')===k?'selected':''}>${v.label}</option>`).join('')}</select>
+    </div>
+    <div class="form-group"><label class="form-label">Anotações</label><textarea class="form-input" id="l-notes">${escHtml(l?.notes||'')}</textarea></div>
+    <div id="lead-msg"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveLead('${leadId||''}')">Salvar</button></div>`);
+}
+async function saveLead(leadId) {
+  const name=document.getElementById('l-name').value.trim();if(!name)return;
+  showMsg('lead-msg','⏳ Salvando...','success');
+  const id=leadId||uid();
+  const data={id,name,phone:document.getElementById('l-phone').value.trim(),email:document.getElementById('l-email').value.trim(),source:document.getElementById('l-source').value.trim(),status:document.getElementById('l-status').value,notes:document.getElementById('l-notes').value.trim()};
+  if(!leadId)data.createdAt=new Date().toLocaleDateString('pt-BR');
+  await DB.saveLead(id,data);closeModal();
+  const wrap=document.getElementById('leads-wrap');if(wrap)wrap.innerHTML=buildLeadsTable(await DB.leads());
+}
+async function deleteLead(id) {
+  await DB.removeLead(id);
+  const wrap=document.getElementById('leads-wrap');if(wrap)wrap.innerHTML=buildLeadsTable(await DB.leads());
+}
+
+/* ══ CONFIGURAÇÕES DO ADMIN ══ */
+async function renderAdminSettings() {
+  const cfg=await DB.getAdminConfig();
+  document.getElementById('main-content').innerHTML=`
+    <div class="page-header"><div class="page-title">MINHA CONTA</div><div class="page-sub">Alterar credenciais de acesso</div></div>
+    <div class="card" style="margin-bottom:22px">
+      <div class="card-title">👤 NOME DE EXIBIÇÃO</div>
+      <div class="form-group"><label class="form-label">Nome Atual</label><input class="form-input" id="cfg-name" value="${escHtml(cfg.name||'')}"></div>
+      <div id="cfg-name-msg"></div><button class="btn btn-gold" onclick="saveAdminName()">SALVAR NOME</button>
+    </div>
+    <div class="card" style="margin-bottom:22px">
+      <div class="card-title">🔑 USUÁRIO DE LOGIN</div>
+      <div class="form-group"><label class="form-label">Usuário Atual</label><input class="form-input" readonly value="${escHtml(cfg.username||'')}" style="opacity:.5"></div>
+      <div class="form-group"><label class="form-label">Novo Usuário</label><input class="form-input" id="cfg-username" placeholder="Novo nome de usuário"></div>
+      <div id="cfg-user-msg"></div><button class="btn btn-gold" onclick="saveAdminUsername()">SALVAR USUÁRIO</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔒 ALTERAR SENHA</div>
+      <div class="form-group"><label class="form-label">Senha Atual</label><div class="pass-field"><input class="form-input" id="cfg-pass-old" type="password"><button class="eye-btn" id="eye-old" onclick="toggleEye('cfg-pass-old','eye-old')" type="button">👁</button></div></div>
+      <div class="form-group"><label class="form-label">Nova Senha (mín. 6 caracteres)</label><div class="pass-field"><input class="form-input" id="cfg-pass-new" type="password"><button class="eye-btn" id="eye-new" onclick="toggleEye('cfg-pass-new','eye-new')" type="button">👁</button></div></div>
+      <div class="form-group"><label class="form-label">Confirmar Nova Senha</label><div class="pass-field"><input class="form-input" id="cfg-pass-new2" type="password"><button class="eye-btn" id="eye-new2" onclick="toggleEye('cfg-pass-new2','eye-new2')" type="button">👁</button></div></div>
+      <div id="cfg-pass-msg"></div><button class="btn btn-gold" onclick="saveAdminPassword()">SALVAR SENHA</button>
+    </div>`;
+}
+async function saveAdminName() {
+  const name=document.getElementById('cfg-name').value.trim();
+  if(!name){showMsg('cfg-name-msg','⚠️ Digite um nome.','error');return;}
+  showMsg('cfg-name-msg','⏳ Salvando...','success');
+  await DB.saveAdminConfig({name});ADMIN.name=name;currentUser.name=name;DB.saveSession(currentUser);
+  document.getElementById('sidebar-username').textContent=name;
+  showMsg('cfg-name-msg','✅ Nome atualizado!','success');
+}
+async function saveAdminUsername() {
+  const u=document.getElementById('cfg-username').value.trim();
+  if(!u||u.length<3){showMsg('cfg-user-msg','⚠️ Usuário deve ter pelo menos 3 caracteres.','error');return;}
+  showMsg('cfg-user-msg','⏳ Salvando...','success');
+  await DB.saveAdminConfig({username:u});ADMIN.username=u;currentUser.username=u;DB.saveSession(currentUser);
+  showMsg('cfg-user-msg',`✅ Usuário alterado para "${u}".`,'success');
+  setTimeout(()=>renderAdminSettings(),1500);
+}
+async function saveAdminPassword() {
+  const op=document.getElementById('cfg-pass-old').value,np=document.getElementById('cfg-pass-new').value,np2=document.getElementById('cfg-pass-new2').value;
+  if(!op||!np||!np2){showMsg('cfg-pass-msg','⚠️ Preencha todos os campos.','error');return;}
+  const cfg=await DB.getAdminConfig();
+  if(op!==cfg.password){showMsg('cfg-pass-msg','❌ Senha atual incorreta.','error');return;}
+  if(np.length<6){showMsg('cfg-pass-msg','⚠️ Mínimo 6 caracteres.','error');return;}
+  if(np!==np2){showMsg('cfg-pass-msg','⚠️ Senhas não coincidem.','error');return;}
+  showMsg('cfg-pass-msg','⏳ Salvando...','success');
+  await DB.saveAdminConfig({password:np});ADMIN.password=np;currentUser.password=np;DB.saveSession(currentUser);
+  showMsg('cfg-pass-msg','✅ Senha alterada!','success');
+  document.getElementById('cfg-pass-old').value='';
+  document.getElementById('cfg-pass-new').value='';
+  document.getElementById('cfg-pass-new2').value='';
+}
+
+/* ══ MODAL ══ */
+function openModal(html) { document.getElementById('modal-root').innerHTML=`<div class="modal-overlay" id="modal-overlay" onclick="onOverlayClick(event)"><div class="modal">${html}</div></div>`; }
+function onOverlayClick(e){if(e.target.id==='modal-overlay')closeModal();}
+function closeModal(){document.getElementById('modal-root').innerHTML='';}
+</script>
+</body>
+</html>
